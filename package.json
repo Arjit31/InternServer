@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000I\u0000n\u0000t\u0000e\u0000r\u0000n\u0000S\u0000e\u0000r\u0000v\u0000e\u0000r\u0000\r\u0000 \u0000",
+  "homepage": "https://github.com/Arjit31/InternServer#readme",
+  "bugs": {
+    "url": "https://github.com/Arjit31/InternServer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arjit31/InternServer.git"
+  },
+  "license": "ISC",
+  "author": "Arjit Khare",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
