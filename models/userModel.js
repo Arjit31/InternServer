@@ -25,11 +25,13 @@ const Schema = mongoose.Schema({
       },
       type: {
         type: String,
-        required: true
+        required: true,
+        default: 'vendor'
       },
       permission: {
         type: Boolean,
-        required: true
+        required: true,
+        default: false
       },
       product_ids: {
         type: [mongoose.Schema.Types.ObjectId],
