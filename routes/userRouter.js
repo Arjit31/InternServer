@@ -1,11 +1,13 @@
 const {Router} = require('express');
 const router = Router();
-const signupUser = require('../controllers/userController');
+const {signupUser, loginUser} = require('../controllers/userController');
 
 router.get('/', async (req, res) => {
-    res.send('user Route');
+    res.json('user Route');
 });
 
 router.post('/signup', signupUser);
+
+router.post('/login', loginUser);
 
 module.exports = router;

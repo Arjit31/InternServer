@@ -1,25 +1,25 @@
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema({
-      first_name: {
+      firstName: {
         type: String,
         required: true
       },
-      last_name: {
+      lastName: {
         type: String,
         required: true
       },
-      email_address: {
+      email: {
         type: String,
         required: true,
         unique: true
       },
-      phone_number: {
+      phoneNumber: {
         type: String,
         required: true,
         unique: true
       },
-      password_hash: {
+      password: {
         type: String,
         required: true
       },
@@ -33,7 +33,7 @@ const Schema = mongoose.Schema({
         required: true,
         default: false
       },
-      product_ids: {
+      productIDs: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Product',
         default: []

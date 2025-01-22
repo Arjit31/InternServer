@@ -1,11 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser')
 const dotenv = require('dotenv');
-const userRouter = require('./routes/user');
+const userRouter = require('./routes/userRouter');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cookieParser())
 const port = 3000;
 
 mongoose.connect(process.env.MONGO_URL, {
@@ -21,6 +23,10 @@ app.get('/', async (req, res) => {
 });
 
 app.use('/user', userRouter);
+
+app.use((err, req, res, next) => {
+  res.status(500).json('Internal Server Error');
+});
 
 app.listen(port, () => {
   console.log(`Example app listening at ${port}`);
