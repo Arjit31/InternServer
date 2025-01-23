@@ -7,9 +7,19 @@ const vendorRouter = require('./routes/vendorRouter');
 
 dotenv.config();
 const app = express();
-app.use(express.json());
-app.use(cookieParser())
 const port = 3000;
+
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 mongoose.connect(process.env.MONGO_URL, {
   w: "majority",  // Write concern
