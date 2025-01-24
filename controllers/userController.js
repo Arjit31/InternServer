@@ -19,7 +19,6 @@ async function signupUser(req, res) {
 
   // save the new user details in the database
   const user = new User(details);
-  console.log(details);
   try {
     const result = await user.save();
     res.json(result);
