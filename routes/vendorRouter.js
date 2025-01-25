@@ -1,8 +1,9 @@
 const {Router} = require('express');
 const multer = require('multer');
-const VendorGeneralDetails = require('../models/vendorModel');
+const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const {uploadVendorDetails} = require('../controllers/vendorController');
 const auth = require('../middleware/auth');
+const { get } = require('mongoose');
 const router = Router();
 
 // Configure Multer to store files temporarily on the server
@@ -11,16 +12,17 @@ const upload = multer({
 });
 
 // Dynamic Multer field configuration based on schema fields
-const schemaFields = Object.keys(VendorGeneralDetails.schema.paths).filter(
-  (field) => field.endsWith('Id') && field !== 'userId'
-);
-const uploadFields = schemaFields.map((field) => ({ name: field, maxCount: 1 }));
+const generalSchemaFields = getSchemaFields(VendorGeneralDetails);
+const bankSchemaFields = getSchemaFields(VendorBankDetails);
+const generalUploadFields = generalSchemaFields.map((field) => ({ name: field, maxCount: 1 }));
+const bankUploadFields = bankSchemaFields.map((field) => ({ name: field, maxCount: 1 }));
 
 router.get('/', auth, async (req, res) => {
   console.log(req.user);
   res.json('vendor Route');
 });
 
-router.post('/register', auth, upload.fields(uploadFields), uploadVendorDetails);
+router.post('/registerGenralDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
+router.post('/registerBankDetails', auth, upload.fields(bankUploadFields), uploadVendorDetails);
 
 module.exports = router;

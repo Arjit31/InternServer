@@ -1,14 +1,20 @@
 const fs = require('fs');
-const VendorGeneralDetails = require('../models/vendorModel');
+const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const uploadFile = require('../utils/fileUpload');
-const mongoose = require('mongoose');
-
-// Extract all fields ending with "Id" except "userId" from the schema
-const schemaFields = Object.keys(VendorGeneralDetails.schema.paths).filter(
-  (field) => field.endsWith('Id') && field !== 'userId'
-);
+const getSchemaFields = require('../utils/getSchemaFields');
+const { get } = require('http');
+// const mongoose = require('mongoose');
 
 async function uploadVendorDetails(req, res){
+  const params = req.originalUrl;
+  const routes = params.split('/');
+  let schemaFields = [];
+  if(routes[routes.length-1] === 'registerGenralDetails'){
+    schemaFields = getSchemaFields(VendorGeneralDetails);
+  }
+  else if(routes[routes.length-1] === 'registerBankDetails'){
+    schemaFields = getSchemaFields(VendorBankDetails);
+  }
   try {
     // const userId = new mongoose.Types.ObjectId(req.user._id);
     const userId = req.user._id;
