@@ -3,8 +3,8 @@ const multer = require('multer');
 const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const {uploadVendorDetails} = require('../controllers/vendorController');
 const auth = require('../middleware/auth');
-const { get } = require('mongoose');
 const router = Router();
+const getSchemaFields = require('../utils/getSchemaFields');
 
 // Configure Multer to store files temporarily on the server
 const upload = multer({
@@ -22,7 +22,7 @@ router.get('/', auth, async (req, res) => {
   res.json('vendor Route');
 });
 
-router.post('/registerGenralDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
+router.post('/registerGeneralDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
 router.post('/registerBankDetails', auth, upload.fields(bankUploadFields), uploadVendorDetails);
 
 module.exports = router;

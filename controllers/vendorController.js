@@ -2,26 +2,44 @@ const fs = require('fs');
 const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const uploadFile = require('../utils/fileUpload');
 const getSchemaFields = require('../utils/getSchemaFields');
-const { get } = require('http');
 // const mongoose = require('mongoose');
 
 async function uploadVendorDetails(req, res){
   const params = req.originalUrl;
   const routes = params.split('/');
   let schemaFields = [];
-  if(routes[routes.length-1] === 'registerGenralDetails'){
-    schemaFields = getSchemaFields(VendorGeneralDetails);
+  let Schema;
+
+  console.log(routes[routes.length-1]);
+  // setting the schema
+  if(routes[routes.length-1] === 'registerGeneralDetails'){
+    Schema = VendorGeneralDetails;
   }
   else if(routes[routes.length-1] === 'registerBankDetails'){
-    schemaFields = getSchemaFields(VendorBankDetails);
+    Schema = VendorBankDetails;
   }
+
+  // checking if user allready regestered these details
+  let checkDuplicate;
+  try {
+    checkDuplicate = await Schema.findOne({userId: req.user._id});
+  } catch (error) {
+    console.log(error);
+  }
+  if(checkDuplicate){
+    res.status(409).json("User already registered these details");
+    return;
+  }
+
+  // setting the schema fields
+  schemaFields = getSchemaFields(Schema);
+
   try {
     // const userId = new mongoose.Types.ObjectId(req.user._id);
     const userId = req.user._id;
     const body = req.body;
     const uploadedFiles = req.files;
     const fileFields = {};
-
     for (const field of schemaFields) {
       if (uploadedFiles[field]) {
         const tempFilePath = uploadedFiles[field][0].path;
@@ -42,7 +60,7 @@ async function uploadVendorDetails(req, res){
     }
 
     // Merge the request body and uploaded file URLs
-    const newVendorDetails = new VendorGeneralDetails({
+    const newVendorDetails = new Schema({
       userId,
       ...body,
       ...fileFields,
