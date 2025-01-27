@@ -12,10 +12,18 @@ async function signupUser(req, res) {
     return;
   };
 
+  if(details.type || details.permission){
+    res.status(403).json("You cannot perform that action");
+    return;
+  }
+
   // hash the password
   const password = details.password;
   const hash = await bcrypt.hash(password, saltRounds);
   details.password = hash;
+  if(details.type == "admin"){
+    details.permission = true;
+  }
 
   // save the new user details in the database
   const user = new User(details);
@@ -53,11 +61,101 @@ async function loginUser(req, res) {
   }
 
   // create a JWT token
-  const token = jwt.sign({ _id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ _id: user._id, type: user.type, permission: user.permission}, process.env.JWT_SECRET, { expiresIn: '1h' });
   res.cookie("access_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   }).json("login successful");
 }
 
-module.exports = { signupUser, loginUser };
+async function updateUser(req, res) {
+  const userId = req.params.userId;
+  // check if the same user or admin is performing the action
+  if(req.user._id != userId && req.user.type != "admin"){
+    res.status(401).json("Unauthorized");
+    return;
+  }
+  const details = req.body;
+  // check if the user is authorized to perform the action
+  if(req.user.type != "admin" && (details.type || details.permission)){
+    res.status(403).json("You cannot perform that action");
+    return;
+  }
+  console.log(details);
+  
+  // validate the user details
+  if (!validateUser(details, "update", res)) {
+    res.status(400).json("Invalid details");
+    return;
+  };
+
+  // update the user details
+  let doc;
+  try {
+    doc = await User.findOneAndUpdate({ _id: userId }, details, { new: true });
+  } catch (error) {
+    console.log(error);
+    res.status = 400;
+    res.json({ "error": error });
+  }
+  res.json(doc);
+}
+
+async function deleteUser(req, res) {
+  const userId = req.params.userId;
+  // check if the same user or admin is performing the action
+  if(req.user._id != userId && req.user.type != "admin"){
+    res.status(401).json("Unauthorized");
+    return;
+  }
+
+  // delete the user details
+  try {
+    const doc = await User.findOneAndDelete({ _id: userId });
+    res.clearCookie("access_token");
+  } catch (error) {
+    console.log(error);
+    res.status = 400;
+    res.json({ "error": error });
+  }
+  res.json("User deleted successfully");
+}
+
+async function getUser(req, res) {
+  const userId = req.params.userId;
+  // check if the same user or admin is performing the action
+  if(req.user._id != userId && req.user.type != "admin"){
+    res.status(401).json("Unauthorized");
+    return;
+  }
+
+  // get the user details
+  try {
+    const doc = await User.findOne({ _id: userId });
+    res.json(doc);
+  } catch (error) {
+    console.log(error);
+    res.status = 400;
+    res.json({ "error": error });
+  }
+}
+
+async function getAllUsers(req, res) {
+  // check if the user is authorized to perform the action
+  if(req.user.type != "admin"){
+    res.status(403).json("You cannot perform that action");
+    return;
+  }
+
+  // get all the users details
+  try {
+    const doc = await User.find();
+    res.json(doc);
+  } catch (error) {
+    console.log(error);
+    res.status = 400;
+    res.json({ "error": error });
+  }
+}
+
+module.exports = { signupUser, loginUser, updateUser, deleteUser, getUser, getAllUsers};

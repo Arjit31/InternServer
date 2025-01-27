@@ -15,6 +15,24 @@ const signupValidationSchema = z.object({
         .min(6, "Password hash must be at least 6 characters long"),
 });
 
+const updateValidationSchema = z.object({
+    firstName: z
+        .union([z.string().length(0), z.string().min(1, "First name is required")])
+        .optional(),
+    lastName: z
+        .union([z.string().length(0), z.string().min(1, "Last name is required")])
+        .optional(),
+    email: z
+        .union([z.string().length(0), z.string().min(1, "email is required"), z.string().email("Invalid email address")])
+        .optional(),
+    phoneNumber: z
+        .union([z.string().length(0), z.string().regex(/^\d{10}$/, "Phone number must be a 10-digit number")])
+        .optional(), // Assuming phone number format
+    password: z
+        .union([z.string().length(0), z.string().min(6, "Password hash must be at least 6 characters long")])
+        .optional(),
+});
+
 const loginValidationSchema = z.object({
     email: z
         .string()
@@ -27,13 +45,16 @@ const loginValidationSchema = z.object({
 
 function validateUser(details, route, res) {
     try {
-        if(route == "signup"){
+        if (route == "signup") {
             signupValidationSchema.parse(details);
         }
-        else if(route == "login"){
+        else if (route == "update") {
+            updateValidationSchema.parse(details);
+        }
+        else if (route == "login") {
             loginValidationSchema.parse(details);
         }
-        else{
+        else {
             throw new Error('Wrong Route');
         }
         return true;
