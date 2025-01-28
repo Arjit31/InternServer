@@ -16,4 +16,11 @@ function auth(req, res, next) {
     }
 }
 
-module.exports = auth;
+function adminAuth(req, res, next) {
+    if(req.user.type != 'admin'){
+        return res.status(403).send({message: 'You are not authorized to perform this action'});
+    }
+    next();
+}
+
+module.exports = {auth, adminAuth};

@@ -85,7 +85,6 @@ async function updateUser(req, res) {
   
   // validate the user details
   if (!validateUser(details, "update", res)) {
-    res.status(400).json("Invalid details");
     return;
   };
 

@@ -2,7 +2,7 @@ const {Router} = require('express');
 const multer = require('multer');
 const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const {uploadVendorDetails} = require('../controllers/vendorController');
-const auth = require('../middleware/auth');
+const {auth} = require('../middleware/auth');
 const router = Router();
 const getSchemaFields = require('../utils/getSchemaFields');
 
