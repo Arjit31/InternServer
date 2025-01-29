@@ -19,6 +19,7 @@ const brandSchema = new mongoose.Schema({
 
 // Product Schema
 const productSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     type: { type: mongoose.Schema.Types.ObjectId, ref: 'Type', required: true },
     brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
@@ -38,7 +39,7 @@ const productSchema = new mongoose.Schema({
     detailedDescription: { type: String, default: "No description available" },
     keyFeatures: { type: String, default: "Not specified" },
     manufacturerDetails: { type: String, default: "Not specified" },
-    productImageIds: { type: [String], default: [] },
+    productImageId: { type: [String], default: [] },
 }, { timestamps: true });
 
 const Brand = mongoose.model('Brand', brandSchema);

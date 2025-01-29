@@ -1,7 +1,7 @@
 const fs = require('fs');
-const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 const uploadFile = require('../utils/fileUpload');
 const getSchemaFields = require('../utils/getSchemaFields');
+const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
 // const mongoose = require('mongoose');
 
 async function uploadVendorDetails(req, res){

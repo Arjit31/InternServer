@@ -2,13 +2,28 @@ const {Router} = require('express');
 const {createCategory, updateCategory, getAllCategory, getCategory, deleteCategory} = require('../controllers/productCategoryController');
 const {createType, updateType, getAllTypes, getType, deleteType} = require('../controllers/productTypeController');
 const {createBrand, updateBrand, getAllBrands, getBrand, deleteBrand} = require('../controllers/productBrandController');
+const {createProduct, updateProduct, getAllProducts, getProduct, deleteProduct} = require('../controllers/productController');
+const {Product} = require('../models/productModel');
 const {auth, adminAuth} = require('../middleware/auth');
+const multer = require('multer');
+const getSchemaFields = require('../utils/getSchemaFields');
 
 const router = Router();
+// Configure Multer to store files temporarily on the server
+const upload = multer({
+  dest: 'temp/', // Temporary folder for storing files
+});
+
+const productSchemaFields = getSchemaFields(Product);
+const productUploadFields = productSchemaFields.map((field) => ({
+  name: field,
+  maxCount: field === "productImageId" ? 7 : 1
+}));
 
 router.get('/', (req, res) => {
   res.json('Hello World!');
 });
+router.post('/', auth, upload.fields(productUploadFields), createProduct);
 
 router.post('/category', auth, adminAuth, createCategory);
 router.get('/category', auth, getAllCategory);
