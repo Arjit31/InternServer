@@ -20,10 +20,11 @@ const productUploadFields = productSchemaFields.map((field) => ({
   maxCount: field === "productImageId" ? 7 : 1
 }));
 
-router.get('/', (req, res) => {
-  res.json('Hello World!');
-});
+router.get('/', getAllProducts);
 router.post('/', auth, upload.fields(productUploadFields), createProduct);
+router.put('/:productId', auth, upload.fields(productUploadFields), updateProduct);
+router.get('/:productId', getProduct);
+router.delete('/:productId', auth, deleteProduct);
 
 router.post('/category', auth, adminAuth, createCategory);
 router.get('/category', auth, getAllCategory);
