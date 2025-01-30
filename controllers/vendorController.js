@@ -1,32 +1,33 @@
 const fs = require('fs');
 const uploadFile = require('../utils/fileUpload');
 const getSchemaFields = require('../utils/getSchemaFields');
-const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
+const { VendorGeneralDetails, VendorBankDetails } = require('../models/vendorModel');
+const cloudinary = require('cloudinary').v2;
 // const mongoose = require('mongoose');
 
-async function uploadVendorDetails(req, res){
+async function uploadVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
   let schemaFields = [];
   let Schema;
 
-  console.log(routes[routes.length-1]);
+  console.log(routes[routes.length - 1]);
   // setting the schema
-  if(routes[routes.length-1] === 'registerGeneralDetails'){
+  if (routes[routes.length - 1] === 'registerGeneralDetails') {
     Schema = VendorGeneralDetails;
   }
-  else if(routes[routes.length-1] === 'registerBankDetails'){
+  else if (routes[routes.length - 1] === 'registerBankDetails') {
     Schema = VendorBankDetails;
   }
 
   // checking if user allready regestered these details
   let checkDuplicate;
   try {
-    checkDuplicate = await Schema.findOne({userId: req.user._id});
+    checkDuplicate = await Schema.findOne({ userId: req.user._id });
   } catch (error) {
     console.log(error);
   }
-  if(checkDuplicate){
+  if (checkDuplicate) {
     res.status(409).json("User already registered these details");
     return;
   }
@@ -78,4 +79,146 @@ async function uploadVendorDetails(req, res){
   }
 };
 
-module.exports = { uploadVendorDetails };
+async function getVendorDetails(req, res) {
+  const params = req.originalUrl;
+  const routes = params.split('/');
+  let Schema;
+  if (routes[routes.length - 1] === 'getGeneralDetails') {
+    Schema = VendorGeneralDetails;
+  }
+  else if (routes[routes.length - 1] === 'getBankDetails') {
+    Schema = VendorBankDetails;
+  }
+  try {
+    const userId = req.params.userId;
+    if(userId !== req.user._id && req.user.type !== 'admin'){
+      res.status(401).json("Unauthorized access");
+      return;
+    }
+    const vendorDetails = await Schema.findOne({ userId: req.user._id });
+    if (!vendorDetails) {
+      res.status(404).json("No details found");
+      return;
+    }
+    res.status(200).json(vendorDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json("Failed to get details");
+  }
+}
+
+async function updateVendorDetails(req, res) {
+  const params = req.originalUrl;
+  const routes = params.split('/');
+  let Schema;
+  if (routes[routes.length - 1] === 'updateGeneralDetails') {
+    Schema = VendorGeneralDetails;
+  }
+  else if (routes[routes.length - 1] === 'updateBankDetails') {
+    Schema = VendorBankDetails;
+  }
+  const schemaFields = getSchemaFields(Schema);
+  try {
+    const userId = req.params.userId;
+    if(userId !== req.user._id && req.user.type !== 'admin'){
+      res.status(401).json("Unauthorized access");
+      return;
+    }
+    const vendorDetails = await Schema.findOne({ userId: req.user._id });
+    if (!vendorDetails) {
+      res.status(404).json("No details found");
+      return;
+    }
+    let body = req.body;
+    const uploadedFiles = req.files;
+    const fileFields = {};
+    for (const field of schemaFields) {
+      if (uploadedFiles[field]) {
+        cloudinary.uploader.destroy(vendorDetails[field], function (error, result) {
+          console.log(result, error)
+        });
+        const tempFilePath = uploadedFiles[field][0].path;
+        const fileName = `${req.user._id}_${field}`;
+
+        // Upload the file to Cloudinary (or another service)
+        const result = await uploadFile(tempFilePath, fileName);
+
+        fileFields[field] = result;
+
+        // Remove the temporary file after upload
+        fs.unlink(tempFilePath, (err) => {
+          if (err) console.error('Failed to delete temp file:', err);
+        });
+      }
+    }
+    body = {
+      ...body,
+      ...fileFields,
+    };
+    const updatedDetails = await Schema.findOneAndUpdate({ userId: req.user._id }, body, { new: true });
+    res.status(200).json(updatedDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json("Failed to update details");
+  }
+}
+
+async function deleteVendorDetails(req, res) {
+  const params = req.originalUrl;
+  const routes = params.split('/');
+  let Schema;
+  if (routes[routes.length - 1] === 'deleteGeneralDetails') {
+    Schema = VendorGeneralDetails;
+  }
+  else if (routes[routes.length - 1] === 'deleteBankDetails') {
+    Schema = VendorBankDetails;
+  }
+  try {
+    const userId = req.params.userId;
+    if(userId !== req.user._id && req.user.type !== 'admin'){
+      res.status(401).json("Unauthorized access");
+      return;
+    }
+    const vendorDetails = await Schema.findOne({ userId: req.user._id });
+    if (!vendorDetails) {
+      res.status(404).json("No details found");
+      return;
+    }
+    const schemaFields = getSchemaFields(Schema);
+    for (const field of schemaFields) {
+      cloudinary.uploader.destroy(vendorDetails[field], function (error, result) {
+        console.log(result, error)
+      });
+    }
+    const deletedDetails = await Schema.findOneAndDelete({ userId: req.user._id });
+    res.status(200).json(deletedDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json("Failed to delete details");
+  }
+}
+
+function getAllVendorDetails(req, res) {
+  const params = req.originalUrl;
+  const routes = params.split('/');
+  if(req.user.type !== 'admin'){
+    res.status(401).json("Unauthorized access");
+    return;
+  }
+  let Schema;
+  if (routes[routes.length - 1] === 'getAllGeneralDetails') {
+    Schema = VendorGeneralDetails;
+  }
+  else if (routes[routes.length - 1] === 'getAllBankDetails') {
+    Schema = VendorBankDetails;
+  }
+  Schema.find({}, function (err, data) {
+    if (err) {
+      res.status(400).json("Failed to get details");
+      return;
+    }
+    res.status(200).json(data);
+  });
+}
+
+module.exports = { uploadVendorDetails, getVendorDetails, updateVendorDetails, deleteVendorDetails, getAllVendorDetails };

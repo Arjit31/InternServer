@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const multer = require('multer');
 const {VendorGeneralDetails, VendorBankDetails} = require('../models/vendorModel');
-const {uploadVendorDetails} = require('../controllers/vendorController');
+const {uploadVendorDetails, getVendorDetails, updateVendorDetails, deleteVendorDetails, getAllVendorDetails} = require('../controllers/vendorController');
 const {auth} = require('../middleware/auth');
 const router = Router();
 const getSchemaFields = require('../utils/getSchemaFields');
@@ -23,6 +23,15 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/registerGeneralDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
+router.get('/getGeneralDetails/:userId', auth, getVendorDetails);
+router.put('/updateGeneralDetails/:userId', auth, upload.fields(generalUploadFields), updateVendorDetails);
+router.delete('/deleteGeneralDetails/:userId', auth, deleteVendorDetails);
+router.get('/getAllGeneralDetails', auth, getAllVendorDetails);
+
 router.post('/registerBankDetails', auth, upload.fields(bankUploadFields), uploadVendorDetails);
+router.get('/getBankDetails/:userId', auth, getVendorDetails);
+router.put('/updateBankDetails/:userId', auth, upload.fields(bankUploadFields), updateVendorDetails);
+router.delete('/deleteBankDetails/:userId', auth, deleteVendorDetails);
+router.get('/getAllBankDetails', auth, getAllVendorDetails);
 
 module.exports = router;

@@ -3,6 +3,7 @@ const uploadFile = require('../utils/fileUpload');
 const getSchemaFields = require('../utils/getSchemaFields');
 const { Product, Category, Type, Brand } = require('../models/productModel');
 const User = require('../models/userModel');
+const cloudinary = require('cloudinary').v2;
 
 async function createProduct(req, res) {
     try {
@@ -14,14 +15,14 @@ async function createProduct(req, res) {
         const type = req.body.type;
         const brand = req.body.brand;
         const brandData = await Brand.findOne({ _id: brand });
-        if(!brandData){
-            return res.status(404).json({error: "Brand not found"});
-        } else if(brandData.typeId != type){
-            return res.status(400).json({error: "Brand and type mismatch"});
+        if (!brandData) {
+            return res.status(404).json({ error: "Brand not found" });
+        } else if (brandData.typeId != type) {
+            return res.status(400).json({ error: "Brand and type mismatch" });
         }
         const typeData = await Type.findOne({ _id: type });
-        if(typeData.categoryId != category){
-            return res.status(400).json({error: "Type and category mismatch"});
+        if (typeData.categoryId != category) {
+            return res.status(400).json({ error: "Type and category mismatch" });
         }
         const uploadedFiles = req.files;
         const fileFields = {};
@@ -29,13 +30,13 @@ async function createProduct(req, res) {
             if (uploadedFiles[field]) {
                 for (let i = 0; i < uploadedFiles[field].length; i++) {
                     const tempFilePath = uploadedFiles[field][i].path;
-                    const fileName = `${req.user._id}_${field}${i != 0 ? '_'+i : ''}`;
+                    const fileName = `${req.user._id}_${field}${i != 0 ? '_' + i : ''}`;
 
                     // Upload the file to Cloudinary (or another service)
                     const result = await uploadFile(tempFilePath, fileName);
 
-                    if(uploadedFiles[field].length > 1){
-                        if(!fileFields[field]){
+                    if (uploadedFiles[field].length > 1) {
+                        if (!fileFields[field]) {
                             fileFields[field] = [];
                         }
                         fileFields[field].push(result);
@@ -71,7 +72,7 @@ async function createProduct(req, res) {
     }
 }
 
-async function getAllProducts(req, res){
+async function getAllProducts(req, res) {
     try {
         const products = await Product.find();
         res.status(200).json(products);
@@ -81,12 +82,12 @@ async function getAllProducts(req, res){
     }
 }
 
-async function getProduct(req, res){
+async function getProduct(req, res) {
     try {
         const productId = req.params.productId;
         const product = await Product.findOne({ _id: productId });
-        if(!product){
-            return res.status(404).json({error: "Product not found"});
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
         }
         res.status(200).json(product);
     } catch (error) {
@@ -95,7 +96,7 @@ async function getProduct(req, res){
     }
 }
 
-async function updateProduct(req, res){
+async function updateProduct(req, res) {
     try {
         let schemaFields = getSchemaFields(Product);
         const userId = req.user._id;
@@ -103,24 +104,24 @@ async function updateProduct(req, res){
         let body = req.body;
         console.log(body.productId);
         const product = await Product.findOne({ _id: productId });
-        if(!product){
-            return res.status(404).json({error: "Product not found"});
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
         }
-        if(product.userId != userId){
-            return res.status(403).json({error: "Unauthorized"});
+        if (product.userId != userId) {
+            return res.status(403).json({ error: "Unauthorized" });
         }
-        if(body.brand){
+        if (body.brand) {
             const brandData = await Brand.findOne({ _id: body.brand });
-            if(!brandData){
-                return res.status(404).json({error: "Brand not found"});
+            if (!brandData) {
+                return res.status(404).json({ error: "Brand not found" });
             }
-            if(body.type){
-                if(brandData.typeId != body.type){
-                    return res.status(400).json({error: "Brand and type mismatch"});
+            if (body.type) {
+                if (brandData.typeId != body.type) {
+                    return res.status(400).json({ error: "Brand and type mismatch" });
                 }
                 const typeData = await Type.findOne({ _id: body.type });
-                if(body.category && typeData.categoryId != body.category){
-                    return res.status(400).json({error: "Type and category mismatch"});
+                if (body.category && typeData.categoryId != body.category) {
+                    return res.status(400).json({ error: "Type and category mismatch" });
                 }
             }
         }
@@ -128,15 +129,22 @@ async function updateProduct(req, res){
         const fileFields = {};
         for (const field of schemaFields) {
             if (uploadedFiles[field]) {
+                if (typeof product[field] === 'string') {
+                    cloudinary.uploader.destroy(product[field], function (error, result) {
+                        console.log(result, error)
+                    });
+                } else if (product[field]) {
+                    cloudinary.api.delete_resources(product[field], function (result) { console.log(result) });
+                }
                 for (let i = 0; i < uploadedFiles[field].length; i++) {
                     const tempFilePath = uploadedFiles[field][i].path;
-                    const fileName = `${req.user._id}_${field}${i != 0 ? '_'+i : ''}`;
+                    const fileName = `${req.user._id}_${field}${i != 0 ? '_' + i : ''}`;
 
                     // Upload the file to Cloudinary (or another service)
                     const result = await uploadFile(tempFilePath, fileName);
 
-                    if(uploadedFiles[field].length > 1){
-                        if(!fileFields[field]){
+                    if (uploadedFiles[field].length > 1) {
+                        if (!fileFields[field]) {
                             fileFields[field] = [];
                         }
                         fileFields[field].push(result);
@@ -151,8 +159,10 @@ async function updateProduct(req, res){
                 }
             }
         }
-        body = {...body,
-            ...fileFields,}
+        body = {
+            ...body,
+            ...fileFields,
+        }
         const updatedProduct = await Product.findOneAndUpdate({ _id: productId }, body, { new: true });
         res.status(200).json(updatedProduct);
     } catch (error) {
@@ -161,24 +171,34 @@ async function updateProduct(req, res){
     }
 }
 
-async function deleteProduct(req, res){
+async function deleteProduct(req, res) {
     try {
         const userId = req.user._id;
         const productId = req.params.productId;
         const product = await Product.findOne({ _id: productId });
-        if(!product){
-            return res.status(404).json({error: "Product not found"});
+        let schemaFields = getSchemaFields(Product);
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
         }
-        if(product.userId != userId){
-            return res.status(403).json({error: "Unauthorized"});
+        if (product.userId != userId) {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+        for (const field of schemaFields) {
+            if (typeof product[field] === 'string') {
+                cloudinary.uploader.destroy(product[field], function (error, result) {
+                    console.log(result, error)
+                });
+            } else if (product[field]) {
+                cloudinary.api.delete_resources(product[field], function (result) { console.log(result) });
+            }
         }
         await Product.findOneAndDelete({ _id: productId });
         const user = await User.findOneAndUpdate({ _id: userId }, { $pull: { productIDs: productId } }, { new: true });
-        res.status(200).json({message: "Product deleted successfully"});
+        res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
         console.error('Error deleting product:', error);
         res.status(400).json({ error: 'Failed to delete product' });
     }
 }
 
-module.exports = { createProduct, getAllProducts, updateProduct, getProduct, deleteProduct};
+module.exports = { createProduct, getAllProducts, updateProduct, getProduct, deleteProduct };
