@@ -5,20 +5,22 @@ const { VendorGeneralDetails, VendorBankDetails } = require('../models/vendorMod
 const cloudinary = require('cloudinary').v2;
 // const mongoose = require('mongoose');
 
+// setting the schema
+function setSchema(route) {
+  if (route == 'generalDetails') {
+    return VendorGeneralDetails;
+  }
+  else if (route == 'bankDetails') {
+    return VendorBankDetails;
+  }
+}
+
 async function uploadVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
   let schemaFields = [];
-  let Schema;
 
-  console.log(routes[routes.length - 1]);
-  // setting the schema
-  if (routes[routes.length - 1] === 'registerGeneralDetails') {
-    Schema = VendorGeneralDetails;
-  }
-  else if (routes[routes.length - 1] === 'registerBankDetails') {
-    Schema = VendorBankDetails;
-  }
+  const Schema = setSchema(routes[routes.length - 1]);
 
   // checking if user allready regestered these details
   let checkDuplicate;
@@ -82,13 +84,7 @@ async function uploadVendorDetails(req, res) {
 async function getVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
-  let Schema;
-  if (routes[routes.length - 1] === 'getGeneralDetails') {
-    Schema = VendorGeneralDetails;
-  }
-  else if (routes[routes.length - 1] === 'getBankDetails') {
-    Schema = VendorBankDetails;
-  }
+  const Schema = setSchema(routes[routes.length - 2]);
   try {
     const userId = req.params.userId;
     if(userId !== req.user._id && req.user.type !== 'admin'){
@@ -110,13 +106,7 @@ async function getVendorDetails(req, res) {
 async function updateVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
-  let Schema;
-  if (routes[routes.length - 1] === 'updateGeneralDetails') {
-    Schema = VendorGeneralDetails;
-  }
-  else if (routes[routes.length - 1] === 'updateBankDetails') {
-    Schema = VendorBankDetails;
-  }
+  const Schema = setSchema(routes[routes.length - 2]);
   const schemaFields = getSchemaFields(Schema);
   try {
     const userId = req.params.userId;
@@ -166,13 +156,7 @@ async function updateVendorDetails(req, res) {
 async function deleteVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
-  let Schema;
-  if (routes[routes.length - 1] === 'deleteGeneralDetails') {
-    Schema = VendorGeneralDetails;
-  }
-  else if (routes[routes.length - 1] === 'deleteBankDetails') {
-    Schema = VendorBankDetails;
-  }
+  const Schema = setSchema(routes[routes.length - 2]);
   try {
     const userId = req.params.userId;
     if(userId !== req.user._id && req.user.type !== 'admin'){
@@ -205,13 +189,7 @@ function getAllVendorDetails(req, res) {
     res.status(401).json("Unauthorized access");
     return;
   }
-  let Schema;
-  if (routes[routes.length - 1] === 'getAllGeneralDetails') {
-    Schema = VendorGeneralDetails;
-  }
-  else if (routes[routes.length - 1] === 'getAllBankDetails') {
-    Schema = VendorBankDetails;
-  }
+  const Schema = setSchema(routes[routes.length - 1]);
   Schema.find({}, function (err, data) {
     if (err) {
       res.status(400).json("Failed to get details");

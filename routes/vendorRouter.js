@@ -22,16 +22,16 @@ router.get('/', auth, async (req, res) => {
   res.json('vendor Route');
 });
 
-router.post('/registerGeneralDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
-router.get('/getGeneralDetails/:userId', auth, getVendorDetails);
-router.put('/updateGeneralDetails/:userId', auth, upload.fields(generalUploadFields), updateVendorDetails);
-router.delete('/deleteGeneralDetails/:userId', auth, deleteVendorDetails);
-router.get('/getAllGeneralDetails', auth, getAllVendorDetails);
+router.post('/generalDetails', auth, upload.fields(generalUploadFields), uploadVendorDetails);
+router.get('/generalDetails/:userId', auth, getVendorDetails);
+router.put('/generalDetails/:userId', auth, upload.fields(generalUploadFields), updateVendorDetails);
+router.delete('/generalDetails/:userId', auth, deleteVendorDetails);
+router.get('/generalDetails', auth, getAllVendorDetails);
 
-router.post('/registerBankDetails', auth, upload.fields(bankUploadFields), uploadVendorDetails);
-router.get('/getBankDetails/:userId', auth, getVendorDetails);
-router.put('/updateBankDetails/:userId', auth, upload.fields(bankUploadFields), updateVendorDetails);
-router.delete('/deleteBankDetails/:userId', auth, deleteVendorDetails);
-router.get('/getAllBankDetails', auth, getAllVendorDetails);
+router.post('/bankDetails', auth, upload.fields(bankUploadFields), uploadVendorDetails);
+router.get('/bankDetails/:userId', auth, getVendorDetails);
+router.put('/bankDetails/:userId', auth, upload.fields(bankUploadFields), updateVendorDetails);
+router.delete('/bankDetails/:userId', auth, deleteVendorDetails);
+router.get('/bankDetails', auth, getAllVendorDetails);
 
 module.exports = router;
