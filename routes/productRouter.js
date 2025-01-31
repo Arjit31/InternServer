@@ -27,20 +27,20 @@ router.get('/:productId', getProduct);
 router.delete('/:productId', auth, deleteProduct);
 
 router.post('/category', auth, adminAuth, createCategory);
-router.get('/category', auth, getAllCategory);
+router.get('/category', getAllCategory);
 router.put('/category/:productId', auth, adminAuth, updateCategory);
 router.get('/category/:productId', auth, adminAuth, getCategory);
 router.delete('/category/:productId', auth, adminAuth, deleteCategory);
 
 
 router.post('/type', auth, adminAuth, createType);
-router.get('/type', auth, getAllTypes);
+router.get('/type', getAllTypes);
 router.put('/type/:typeId', auth, adminAuth, updateType);
 router.get('/type/:typeId', auth, adminAuth, getType);
 router.delete('/type/:typeId', auth, adminAuth, deleteType);
 
 router.post('/brand', auth, adminAuth, createBrand);
-router.get('/brand', auth, getAllBrands);
+router.get('/brand', getAllBrands);
 router.put('/brand/:brandId', auth, adminAuth, updateBrand);
 router.get('/brand/:brandId', auth, adminAuth, getBrand);
 router.delete('/brand/:brandId', auth, adminAuth, deleteBrand);

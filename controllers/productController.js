@@ -4,6 +4,7 @@ const getSchemaFields = require('../utils/getSchemaFields');
 const { Product, Category, Type, Brand } = require('../models/productModel');
 const User = require('../models/userModel');
 const cloudinary = require('cloudinary').v2;
+const {productValidationSchema, updateProductValidationSchema} = require('../validator/productValidator');
 
 async function createProduct(req, res) {
     try {
@@ -54,11 +55,14 @@ async function createProduct(req, res) {
             }
         }
         // Merge the request body and uploaded file URLs
-        const newProduct = new Product({
+        const details =  {
             userId,
             ...body,
             ...fileFields,
-        });
+        };
+
+        productValidationSchema.parse(details);
+        const newProduct = new Product(details);
 
         await newProduct.save();
         const user = await User.findOneAndUpdate({ _id: userId }, { $push: { productIDs: newProduct._id } }, { new: true });
@@ -163,6 +167,7 @@ async function updateProduct(req, res) {
             ...body,
             ...fileFields,
         }
+        updateProductValidationSchema.parse(body);
         const updatedProduct = await Product.findOneAndUpdate({ _id: productId }, body, { new: true });
         res.status(200).json(updatedProduct);
     } catch (error) {

@@ -16,21 +16,11 @@ const signupValidationSchema = z.object({
 });
 
 const updateValidationSchema = z.object({
-    firstName: z
-        .union([z.string().length(0), z.string().min(1, "First name is required")])
-        .optional(),
-    lastName: z
-        .union([z.string().length(0), z.string().min(1, "Last name is required")])
-        .optional(),
-    email: z
-        .union([z.string().length(0), z.string().min(1, "email is required"), z.string().email("Invalid email address")])
-        .optional(),
-    phoneNumber: z
-        .union([z.string().length(0), z.string().regex(/^\d{10}$/, "Phone number must be a 10-digit number")])
-        .optional(), // Assuming phone number format
-    password: z
-        .union([z.string().length(0), z.string().min(6, "Password hash must be at least 6 characters long")])
-        .optional(),
+    firstName: z.string().min(1, "First name is required").optional(),
+    lastName: z.string().min(1, "Last name is required").optional(),
+    email: z.string().min(1, "Email is required").email("Invalid email address").optional(),
+    phoneNumber: z.string().regex(/^\d{10}$/, "Phone number must be a 10-digit number").optional(),
+    password: z.string().min(6, "Password hash must be at least 6 characters long").optional(),
 });
 
 const loginValidationSchema = z.object({

@@ -3,6 +3,7 @@ const uploadFile = require('../utils/fileUpload');
 const getSchemaFields = require('../utils/getSchemaFields');
 const { VendorGeneralDetails, VendorBankDetails } = require('../models/vendorModel');
 const cloudinary = require('cloudinary').v2;
+const {generalDetailsSchema, updateGeneralDetailsSchema, bankDetailsSchema, updateBankDetailsSchema} = require('../validator/vendorValidator');
 // const mongoose = require('mongoose');
 
 // setting the schema
@@ -15,12 +16,28 @@ function setSchema(route) {
   }
 }
 
+// Function to set the validation schema
+function setValidationSchema(route, isUpdate) {
+  if (route === 'generalDetails') {
+    return isUpdate ? updateGeneralDetailsSchema : generalDetailsSchema;
+  } 
+  else if (route === 'bankDetails') {
+    return isUpdate ? updateBankDetailsSchema : bankDetailsSchema;
+  }
+}
+
 async function uploadVendorDetails(req, res) {
   const params = req.originalUrl;
   const routes = params.split('/');
   let schemaFields = [];
 
   const Schema = setSchema(routes[routes.length - 1]);
+  const validationSchema = setValidationSchema(routes[routes.length - 1], false);
+
+  if(req.user.type != 'vendor' || req.user.type != 'admin'){
+    res.status(401).json("Unauthorized access");
+    return;
+  }
 
   // checking if user allready regestered these details
   let checkDuplicate;
@@ -62,12 +79,14 @@ async function uploadVendorDetails(req, res) {
       }
     }
 
-    // Merge the request body and uploaded file URLs
-    const newVendorDetails = new Schema({
+    const details = {
       userId,
       ...body,
       ...fileFields,
-    });
+    };
+    validationSchema.parse(details);
+    // Merge the request body and uploaded file URLs
+    const newVendorDetails = new Schema(details);
 
     await newVendorDetails.save();
 
@@ -108,6 +127,8 @@ async function updateVendorDetails(req, res) {
   const routes = params.split('/');
   const Schema = setSchema(routes[routes.length - 2]);
   const schemaFields = getSchemaFields(Schema);
+  const validationSchema = setValidationSchema(routes[routes.length - 2], true);
+
   try {
     const userId = req.params.userId;
     if(userId !== req.user._id && req.user.type !== 'admin'){
@@ -145,6 +166,7 @@ async function updateVendorDetails(req, res) {
       ...body,
       ...fileFields,
     };
+    validationSchema.parse(body);
     const updatedDetails = await Schema.findOneAndUpdate({ userId: req.user._id }, body, { new: true });
     res.status(200).json(updatedDetails);
   } catch (error) {
